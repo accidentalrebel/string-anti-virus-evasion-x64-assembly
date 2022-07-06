@@ -1,2 +1,2 @@
 @ECHO OFF
-cl.exe av-evasion.c /link /OUT:av-evasion-c.exe shell32.lib
+cl.exe av-evasion.c /link shell32.lib
