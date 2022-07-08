@@ -9,6 +9,21 @@ segment .text
 	extern ExitProcess
 	extern ShellExecuteA
 
+%macro	addstr2stack	1-*
+	%assign	i 0
+	%assign j 0
+	%rep	%0
+ 		mov	byte [rsp+i+8*j], %1
+		%assign	i i+1
+		%rotate 1
+
+		%if i >= 8
+			%assign j j+1
+			%assign i 0
+		%endif
+	%endrep
+%endmacro
+
 main:
 	push    rbp
 	mov     rbp, rsp
@@ -18,16 +33,14 @@ main:
 	xor	r9, r9
 
 	sub	rsp, 8
-	mov	byte [rsp], "n"
-	mov	byte [rsp+1], "o"
-	mov	byte [rsp+2], "t"
-	mov	byte [rsp+3], "e"
-	mov	byte [rsp+4], "p"
-	mov	byte [rsp+5], "a"
-	mov	byte [rsp+6], "d"
-	mov	byte [rsp+7], 0x0	
+	addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0
 	lea	r8, [rsp]
 	add	rsp, 8
+
+	;; sub	rsp, 16
+	;; addstr2stack "p", "o", "w", "e", "r", "s", "h", "e", "l", "l", 0x0
+	;; lea	r8, [rsp]
+	;; add	rsp, 16
 	
 	lea	rdx, [msg_open]	
 	xor	rcx, rcx	
