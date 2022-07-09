@@ -27,27 +27,23 @@ segment .text
 main:
 	push    rbp
 	mov     rbp, rsp
-	
-	push	0x5
-	push	0x0
-	xor	r9, r9
 
-	;; sub	rsp, 8
-	;; addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0
-	;; lea	r8, [rsp]
-	;; add	rsp, 8
-
-	sub	rsp, 16
-	addstr2stack "p", "o", "w", "e", "r", "s", "h", "e", "l", "l", 0x0
-	lea	r8, [rsp]
-	add	rsp, 16
+	sub	rsp, 16		; Reserve "notepad" string on stack
+	addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0
+	lea	r8, [rsp]	; lpFile (Argument 3)
 	
-	lea	rdx, [msg_open]	
-	xor	rcx, rcx	
+	push	0x5		; nShowCmd (Argument 6), 0x5 == SW_SHOW
+	push	0x0		; lpDirectory (Argument 5)
+	xor	r9, r9		; lpParameters (Argument 4)
+	
+	lea	rdx, [msg_open]	; lpOperation (Argument 2)
+	xor	rcx, rcx	; hwnd (Argument 1) 
 
 	sub	rsp, 32
 	call	ShellExecuteA
 	add	rsp, 32
+
+	add	rsp, 16		; Release "notepad" string from stack
 
 	xor     rax, rax
 	call    ExitProcess

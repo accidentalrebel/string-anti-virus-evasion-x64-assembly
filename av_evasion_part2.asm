@@ -3,16 +3,15 @@
 
 segment .data
 	msg_open	db	"open", 0
-	;; str_shell32	db	"shell32.dll", 0
-	;; str_shexa	db	"ShellExecuteA", 0
+	msg_notepad	db	"notepad", 0
+	;; str_shell32	db	"shell32.dll", 0     ; Declaration of these string are not needed anymore
+	;; str_shexa	db	"ShellExecuteA", 0   ; Because we're already adding these to the stack (See Part 1)
 
 segment .text
 	global main
 	extern ExitProcess
-	extern ShellExecuteA
 	extern LoadLibraryA
 	extern GetProcAddress
-	extern MessageBoxA
 
 %macro	addstr2stack	1-*
 	%assign	i 0
@@ -33,71 +32,69 @@ main:
 	push    rbp
 	mov     rbp, rsp
  	sub	rsp, 32
-
-	sub	rsp, 16
-	addstr2stack "s", "h", "e", "l", "l", "3", "2", ".", "d", "l", "l", 0x0
+	
+	;; = START LOADLIBRARY ===========================================
+	
+	sub	rsp, 16         ; Place "shell32.dll" string to the stack
+	addstr2stack "s", "h", "e", "l", "l", "3", "2", ".", "d", "l", "l", 0x0 
 	lea	rcx, [rsp]
 
-	;; lea	rcx, [str_shell32]
 	sub	rsp, 32
-	call	LoadLibraryA
+	call	LoadLibraryA    ; Call LoadLibraryA
 	add	rsp, 32
 
-	add	rsp, 16		; Release shell32.dll
+	add	rsp, 16		; Release "shell32.dll" string from stack
 	
-	mov	rcx, rax
+	;; = END LOADLIBRARY ===========================================
+	
+	
+	;; = START GETPROCADDRESS ===========================================
+	
+	mov	rcx, rax        ; Save value to rcx (1st parameter register)
 
-	sub	rsp, 16
+	sub	rsp, 16         ; Place "ShellExecuteA" string to the stack
 	addstr2stack "S", "h", "e", "l", "l", "E", "x", "e", "c", "u", "t", "e", "A", 0x0
 	lea	rdx, [rsp]
 
-	;; lea	rdx, [str_shexa]
  	sub	rsp, 32
-	call	GetProcAddress
+	call	GetProcAddress	; Call GetProcAddress
 	add	rsp, 32
 
-	add	rsp, 16  	; Release ShellExecuteA
-
-	mov	rbx, rax
-
-	;; push	rax
-	;; xor	r9, r9
-	;; lea	r8, [str_shexa]
-	;; lea	rdx, [str_shexa]
-	;; xor	rcx, rcx
-	;; sub	rsp, 32
-	;; call	rax
-	;; add	rsp, 32
-	;; pop	rax
-
-	;; xor	r9, r9
-	;; lea	r8, [str_shexa]
-	;; lea	rdx, [str_shexa]	
-	;; xor	rcx, rcx
-	;; sub	rsp, 32
-	;; call	rax
-	;; add	rsp, 32
+	add	rsp, 16  	; Release "ShellExecuteA" from stack
 	
+	;; = END GETPROCADDRESS ===========================================
+	
+	
+	;; = START SHELLEXECUTEA ===========================================
+	
+	mov	r12, rax	; Save address of "ShellExecuteA" to rbx (To be called later)
+
+	sub	rsp, 8          ; Place "notepad" string to the stack
+	addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0;; , "n", "o", "t", "e", "p", "a", "d", 0x0
+	lea	r8, [rsp]
+	sub	rsp, 8          ; We make sure that stack is aligned to a 16-bit boundary
+
 	push	0x5
 	push	0x0
 	xor	r9, r9
 
-	sub	rsp, 8
-	addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0
-	lea	r8, [rsp]
-	add	rsp, 8
-
-	;; sub	rsp, 16
-	;; addstr2stack "p", "o", "w", "e", "r", "s", "h", "e", "l", "l", 0x0
+	;; sub	rsp, 8          ; Place "notepad" string to the stack
+	;; addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0
 	;; lea	r8, [rsp]
-	;; add	rsp, 16
+	;; add	rsp, 8          ; Release "notepad" string from stack
 	
+ 	;; lea	r8, [msg_notepad]
+
 	lea	rdx, [msg_open]	
 	xor	rcx, rcx
 
 	sub	rsp, 32
-	call	rbx
+	call	r12         	; Call "ShellExecuteA", jump to addres
 	add	rsp, 32
+
+	add	rsp, 16          ; Release "notepad" string from stack
+	
+	;; = END SHELLEXECUTEA ===========================================
 
 	xor     rax, rax
 	call    ExitProcess
