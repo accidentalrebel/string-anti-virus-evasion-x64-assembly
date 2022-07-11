@@ -67,23 +67,15 @@ main:
 	
 	;; = START SHELLEXECUTEA ===========================================
 	
-	mov	r12, rax	; Save address of "ShellExecuteA" to rbx (To be called later)
+	mov	r12, rax	; Save address of "ShellExecuteA" to r12 (To be called later)
 
-	sub	rsp, 8          ; Place "notepad" string to the stack
+	sub	rsp, 16         ; Place "notepad" string to the stack
 	addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0;; , "n", "o", "t", "e", "p", "a", "d", 0x0
 	lea	r8, [rsp]
-	sub	rsp, 8          ; We make sure that stack is aligned to a 16-bit boundary
 
 	push	0x5
 	push	0x0
 	xor	r9, r9
-
-	;; sub	rsp, 8          ; Place "notepad" string to the stack
-	;; addstr2stack "n", "o", "t", "e", "p", "a", "d", 0x0
-	;; lea	r8, [rsp]
-	;; add	rsp, 8          ; Release "notepad" string from stack
-	
- 	;; lea	r8, [msg_notepad]
 
 	lea	rdx, [msg_open]	
 	xor	rcx, rcx
@@ -92,7 +84,7 @@ main:
 	call	r12         	; Call "ShellExecuteA", jump to addres
 	add	rsp, 32
 
-	add	rsp, 16          ; Release "notepad" string from stack
+	add	rsp, 16         ; Release "notepad" string from stack
 	
 	;; = END SHELLEXECUTEA ===========================================
 
